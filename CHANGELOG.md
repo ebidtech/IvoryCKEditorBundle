@@ -1,7 +1,30 @@
 # CHANGELOG
 
-### 2.5.1 (????-??-??)
+### 3.0.0 (2014-12-29)
 
+ * cbad747 - Add inline editing support
+ * c875b8b - [Travis] Add composer prefer-lowest build
+ * b23b5d1 - [Travis] Move Symfony 2.6.*@dev to 2.6.*
+ * c6c5dbe - Add stylesSet element array support
+ * c573a39 - Add JQuery adapter support
+ * 4035ca0 - Upgrade CKEditor to 4.4.6
+ * 280abf1 - [Travis] Update config
+ * 00086ab - Add .gitattributes
+ * 3c82c18 - [Readme] Fix badge uri
+ * 6feb086 - [DependencyInjection] Remove *.class parameters
+ * 588ffa3 - [Test] Remove bootstrap.php
+ * cc0a387 - [Encapsulation] Move everything from protected to private (except for entry point)
+ * 03045fd - [Form] Add input_sync option
+
+### 2.5.2 (2014-11-08)
+
+ * 900d69b - [Config] Fix language conversion
+ * 133bcfc - [Doc] Link to fmelfinder doc
+ * e8a41a4 - Add type and widget options for styles
+
+### 2.5.1 (2014-10-30)
+
+ * 3b43d72 - Upgrade CKEditor to 4.4.5
  * 6be9ee8 - [Build] Move CKEditor sync script from Resources/build/sync.sh to bin/ckeditor-sync
 
 ### 2.5.0 (2014-08-29)

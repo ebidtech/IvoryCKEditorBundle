@@ -30,10 +30,14 @@ class Configuration implements ConfigurationInterface
         $treeBuilder
             ->root('ivory_ck_editor')
             ->children()
-                ->booleanNode('enable')->defaultTrue()->end()
-                ->booleanNode('autoload')->defaultTrue()->end()
-                ->scalarNode('base_path')->defaultValue('bundles/ivoryckeditor/')->end()
-                ->scalarNode('js_path')->defaultValue('bundles/ivoryckeditor/ckeditor.js')->end()
+                ->booleanNode('enable')->end()
+                ->booleanNode('inline')->end()
+                ->booleanNode('autoload')->end()
+                ->booleanNode('jquery')->end()
+                ->booleanNode('input_sync')->end()
+                ->scalarNode('base_path')->end()
+                ->scalarNode('js_path')->end()
+                ->scalarNode('jquery_path')->end()
                 ->scalarNode('default_config')->end()
                 ->append($this->createConfigsNode())
                 ->append($this->createPluginsNode())
@@ -50,7 +54,7 @@ class Configuration implements ConfigurationInterface
      *
      * @return \Symfony\Component\Config\Definition\Builder\NodeDefinition The configs node.
      */
-    protected function createConfigsNode()
+    private function createConfigsNode()
     {
         return $this->createNode('configs')
             ->useAttributeAsKey('name')
@@ -65,7 +69,7 @@ class Configuration implements ConfigurationInterface
      *
      * @return \Symfony\Component\Config\Definition\Builder\NodeDefinition The plugins node.
      */
-    protected function createPluginsNode()
+    private function createPluginsNode()
     {
         return $this->createNode('plugins')
             ->useAttributeAsKey('name')
@@ -82,7 +86,7 @@ class Configuration implements ConfigurationInterface
      *
      * @return \Symfony\Component\Config\Definition\Builder\NodeDefinition The styles node.
      */
-    protected function createStylesNode()
+    private function createStylesNode()
     {
         return $this->createNode('styles')
             ->useAttributeAsKey('name')
@@ -90,7 +94,9 @@ class Configuration implements ConfigurationInterface
                 ->prototype('array')
                     ->children()
                         ->scalarNode('name')->end()
-                        ->scalarNode('element')->end()
+                        ->scalarNode('type')->end()
+                        ->scalarNode('widget')->end()
+                        ->variableNode('element')->end()
                         ->arrayNode('styles')
                             ->normalizeKeys(false)
                             ->useAttributeAsKey('name')
@@ -111,7 +117,7 @@ class Configuration implements ConfigurationInterface
      *
      * @return \Symfony\Component\Config\Definition\Builder\NodeDefinition The templates node.
      */
-    protected function createTemplatesNode()
+    private function createTemplatesNode()
     {
         return $this->createNode('templates')
             ->useAttributeAsKey('name')
@@ -137,7 +143,7 @@ class Configuration implements ConfigurationInterface
      *
      * @return \Symfony\Component\Config\Definition\Builder\NodeDefinition The toolbars node.
      */
-    protected function createToolbarsNode()
+    private function createToolbarsNode()
     {
         return $this->createNode('toolbars')
             ->addDefaultsIfNotSet()
@@ -164,7 +170,7 @@ class Configuration implements ConfigurationInterface
      *
      * @return \Symfony\Component\Config\Definition\Builder\NodeDefinition The node.
      */
-    protected function createNode($name)
+    private function createNode($name)
     {
         return $this->createTreeBuilder()->root($name);
     }
@@ -174,7 +180,7 @@ class Configuration implements ConfigurationInterface
      *
      * @return \Symfony\Component\Config\Definition\Builder\TreeBuilder The tree builder.
      */
-    protected function createTreeBuilder()
+    private function createTreeBuilder()
     {
         return new TreeBuilder();
     }

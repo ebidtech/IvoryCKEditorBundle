@@ -23,10 +23,10 @@ use Symfony\Component\Templating\Helper\Helper;
 class CKEditorHelper extends Helper
 {
     /** @var \Ivory\JsonBuilder\JsonBuilder */
-    protected $jsonBuilder;
+    private $jsonBuilder;
 
     /** @var \Symfony\Component\DependencyInjection\ContainerInterface */
-    protected $container;
+    private $container;
 
     /**
      * Creates a CKEditor template helper.
@@ -64,22 +64,42 @@ class CKEditorHelper extends Helper
     }
 
     /**
-     * Renders the replace.
+     * Renders the widget.
      *
-     * @param string $id     The identifier.
-     * @param array  $config The config.
+     * @param string  $id        The identifier.
+     * @param array   $config    The config.
+     * @param boolean $inline    TRUE if the widget is inlined else FALSE.
+     * @param boolean $inputSync TRUE if the input is synchronized with the CKEditor instance else FALSE.
      *
-     * @return string The rendered replace.
+     * @return string The rendered widget.
      */
-    public function renderReplace($id, array $config)
+    public function renderWidget($id, array $config, $inline = false, $inputSync = false)
     {
+        $config = $this->fixConfigLanguage($config);
+        $config = $this->fixConfigContentsCss($config);
+        $config = $this->fixConfigFilebrowsers($config);
+
         $this->jsonBuilder
             ->reset()
-            ->setValues($this->fixConfigFilebrowsers($this->fixConfigContentsCss($config)));
+            ->setValues($config);
 
         $this->fixConfigEscapedValues($config);
 
-        return sprintf('CKEDITOR.replace("%s", %s);', $id, $this->fixConfigConstants($this->jsonBuilder->build()));
+        $replace = sprintf(
+            'CKEDITOR.%s("%s", %s);',
+            $inline ? 'inline' : 'replace',
+            $id,
+            $this->fixConfigConstants($this->jsonBuilder->build())
+        );
+
+        if ($inputSync) {
+            $variable = 'ivory_ckeditor_'.$id;
+            $replace = 'var '.$variable.' = '.$replace.PHP_EOL;
+
+            return $replace.$variable.'.on(\'change\', function() { '.$variable.'.updateElement(); });';
+        }
+
+        return $replace;
     }
 
     /**
@@ -166,13 +186,29 @@ class CKEditorHelper extends Helper
     }
 
     /**
+     * Fixes the config language.
+     *
+     * @param array $config The config.
+     *
+     * @return array The fixed config.
+     */
+    protected function fixConfigLanguage(array $config)
+    {
+        if (isset($config['language'])) {
+            $config['language'] = strtolower(str_replace('_', '-', $config['language']));
+        }
+
+        return $config;
+    }
+
+    /**
      * Fixes the config contents css.
      *
      * @param array $config The config.
      *
      * @return array The fixed config.
      */
-    protected function fixConfigContentsCss(array $config)
+    private function fixConfigContentsCss(array $config)
     {
         if (isset($config['contentsCss'])) {
             $cssContents = (array) $config['contentsCss'];
@@ -193,7 +229,7 @@ class CKEditorHelper extends Helper
      *
      * @return array The fixed config.
      */
-    protected function fixConfigFilebrowsers(array $config)
+    private function fixConfigFilebrowsers(array $config)
     {
         $filebrowserKeys = array(
             'Browse',
@@ -236,7 +272,7 @@ class CKEditorHelper extends Helper
      *
      * @param array $config The config.
      */
-    protected function fixConfigEscapedValues(array $config)
+    private function fixConfigEscapedValues(array $config)
     {
         if (isset($config['protectedSource'])) {
             foreach ($config['protectedSource'] as $key => $value) {
@@ -263,7 +299,7 @@ class CKEditorHelper extends Helper
      *
      * @return string The fixed config.
      */
-    protected function fixConfigConstants($json)
+    private function fixConfigConstants($json)
     {
         return preg_replace('/"(CKEDITOR\.[A-Z_]+)"/', '$1', $json);
     }
@@ -275,7 +311,7 @@ class CKEditorHelper extends Helper
      *
      * @return string The fixed path.
      */
-    protected function fixPath($path)
+    private function fixPath($path)
     {
         if (($position = strpos($path, '?')) !== false) {
             return substr($path, 0, $position);
@@ -289,7 +325,7 @@ class CKEditorHelper extends Helper
      *
      * @return \Symfony\Component\Templating\Helper\CoreAssetsHelper The assets helper.
      */
-    protected function getAssetsHelper()
+    private function getAssetsHelper()
     {
         return $this->container->get('templating.helper.assets');
     }
@@ -299,7 +335,7 @@ class CKEditorHelper extends Helper
      *
      * @return \Symfony\Component\Routing\RouterInterface The router.
      */
-    protected function getRouter()
+    private function getRouter()
     {
         return $this->container->get('router');
     }

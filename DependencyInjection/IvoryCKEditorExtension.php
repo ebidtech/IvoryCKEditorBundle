@@ -34,14 +34,10 @@ class IvoryCKEditorExtension extends ConfigurableExtension
             $loader->load($service.'.xml');
         }
 
-        $container->setParameter('ivory_ck_editor.form.type.enable', $config['enable']);
-        $container->setParameter('ivory_ck_editor.form.type.autoload', $config['autoload']);
-        $container->setParameter('ivory_ck_editor.form.type.base_path', $config['base_path']);
-        $container->setParameter('ivory_ck_editor.form.type.js_path', $config['js_path']);
-
         $this->registerResources($container);
+        $this->registerConfig($config, $container);
 
-        if ($config['enable']) {
+        if (!isset($config['enable']) || $config['enable']) {
             $this->registerConfigs($config, $container);
             $this->registerPlugins($config, $container);
             $this->registerStylesSet($config, $container);
@@ -54,7 +50,7 @@ class IvoryCKEditorExtension extends ConfigurableExtension
      *
      * @param \Symfony\Component\DependencyInjection\ContainerBuilder $container The container.
      */
-    protected function registerResources(ContainerBuilder $container)
+    private function registerResources(ContainerBuilder $container)
     {
         $templatingEngines = $container->getParameter('templating.engines');
 
@@ -80,6 +76,49 @@ class IvoryCKEditorExtension extends ConfigurableExtension
     }
 
     /**
+     * Registers the CKEditor config.
+     *
+     * @param array                                                   $config    The CKEditor configuration
+     * @param \Symfony\Component\DependencyInjection\ContainerBuilder $container The container.
+     */
+    private function registerConfig(array $config, ContainerBuilder $container)
+    {
+        $formType = $container->getDefinition('ivory_ck_editor.form.type');
+
+        if (isset($config['enable'])) {
+            $formType->addMethodCall('isEnable', array($config['enable']));
+        }
+
+        if (isset($config['inline'])) {
+            $formType->addMethodCall('isInline', array($config['inline']));
+        }
+
+        if (isset($config['autoload'])) {
+            $formType->addMethodCall('isAutoload', array($config['autoload']));
+        }
+
+        if (isset($config['jquery'])) {
+            $formType->addMethodCall('useJquery', array($config['jquery']));
+        }
+
+        if (isset($config['input_sync'])) {
+            $formType->addMethodCall('isInputSync', array($config['input_sync']));
+        }
+
+        if (isset($config['base_path'])) {
+            $formType->addMethodCall('setBasePath', array($config['base_path']));
+        }
+
+        if (isset($config['js_path'])) {
+            $formType->addMethodCall('setJsPath', array($config['js_path']));
+        }
+
+        if (isset($config['jquery_path'])) {
+            $formType->addMethodCall('setJqueryPath', array($config['jquery_path']));
+        }
+    }
+
+    /**
      * Registers the CKEditor configs.
      *
      * @param array                                                   $config    The CKEditor configuration.
@@ -87,7 +126,7 @@ class IvoryCKEditorExtension extends ConfigurableExtension
      *
      * @throws \Ivory\CKEditorBundle\Exception\DependencyInjectionException If the default config does not exist.
      */
-    protected function registerConfigs(array $config, ContainerBuilder $container)
+    private function registerConfigs(array $config, ContainerBuilder $container)
     {
         if (empty($config['configs'])) {
             return;
@@ -115,7 +154,7 @@ class IvoryCKEditorExtension extends ConfigurableExtension
      * @param array                                                   $config    The CKEditor configuration.
      * @param \Symfony\Component\DependencyInjection\ContainerBuilder $container The container.
      */
-    protected function registerPlugins(array $config, ContainerBuilder $container)
+    private function registerPlugins(array $config, ContainerBuilder $container)
     {
         if (empty($config['plugins'])) {
             return;
@@ -134,7 +173,7 @@ class IvoryCKEditorExtension extends ConfigurableExtension
      * @param array                                                   $config    The CKEditor configuration.
      * @param \Symfony\Component\DependencyInjection\ContainerBuilder $container The container.
      */
-    protected function registerStylesSet(array $config, ContainerBuilder $container)
+    private function registerStylesSet(array $config, ContainerBuilder $container)
     {
         if (empty($config['styles'])) {
             return;
@@ -153,7 +192,7 @@ class IvoryCKEditorExtension extends ConfigurableExtension
      * @param array                                                   $config    The CKEditor configuration.
      * @param \Symfony\Component\DependencyInjection\ContainerBuilder $container The container.
      */
-    protected function registerTemplates(array $config, ContainerBuilder $container)
+    private function registerTemplates(array $config, ContainerBuilder $container)
     {
         if (empty($config['templates'])) {
             return;
@@ -175,7 +214,7 @@ class IvoryCKEditorExtension extends ConfigurableExtension
      *
      * @return array The CKEditor configuration with merged toolbars.
      */
-    protected function mergeToolbars(array $config)
+    private function mergeToolbars(array $config)
     {
         $resolvedToolbars = $this->resolveToolbars($config);
         unset($config['toolbars']);
@@ -202,7 +241,7 @@ class IvoryCKEditorExtension extends ConfigurableExtension
      *
      * @return array The resolved CKEditor toolbars.
      */
-    protected function resolveToolbars(array $config)
+    private function resolveToolbars(array $config)
     {
         $resolvedToolbars = array();
 
@@ -225,9 +264,9 @@ class IvoryCKEditorExtension extends ConfigurableExtension
      *
      * @throws \Ivory\CKEditorBundle\Exception\DependencyInjectionException If the toolbar item does not exist.
      *
-     * @return array The resolved CKEditor toolbar item.
+     * @return array|string The resolved CKEditor toolbar item.
      */
-    protected function resolveToolbarItem($item, array $items)
+    private function resolveToolbarItem($item, array $items)
     {
         if (is_string($item) && ($item[0] === '@')) {
             $itemName = substr($item, 1);
@@ -249,16 +288,10 @@ class IvoryCKEditorExtension extends ConfigurableExtension
      *
      * @return array The fixed CKEditor styles set.
      */
-    protected function fixStylesSet(array $stylesSet)
+    private function fixStylesSet(array $stylesSet)
     {
         foreach ($stylesSet as &$value) {
-            if (empty($value['styles'])) {
-                unset($value['styles']);
-            }
-
-            if (empty($value['attributes'])) {
-                unset($value['attributes']);
-            }
+            $value = array_filter($value);
         }
 
         return $stylesSet;
@@ -269,7 +302,7 @@ class IvoryCKEditorExtension extends ConfigurableExtension
      *
      * @return array The default CKEditor toolbars.
      */
-    protected function getDefaultToolbars()
+    private function getDefaultToolbars()
     {
         return array(
             'full'     => $this->getFullToolbar(),
@@ -283,7 +316,7 @@ class IvoryCKEditorExtension extends ConfigurableExtension
      *
      * @return array The full CKEditor toolbar.
      */
-    protected function getFullToolbar()
+    private function getFullToolbar()
     {
         return array(
             array('Source', '-', 'NewPage', 'Preview', 'Print', '-', 'Templates'),
@@ -313,7 +346,7 @@ class IvoryCKEditorExtension extends ConfigurableExtension
      *
      * @return array The standard CKEditor toolbar.
      */
-    protected function getStandardToolbar()
+    private function getStandardToolbar()
     {
         return array(
             array('Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo'),
@@ -334,7 +367,7 @@ class IvoryCKEditorExtension extends ConfigurableExtension
      *
      * @return array The basic CKEditor toolbar.
      */
-    protected function getBasicToolbar()
+    private function getBasicToolbar()
     {
         return array(
             array('Bold', 'Italic'),

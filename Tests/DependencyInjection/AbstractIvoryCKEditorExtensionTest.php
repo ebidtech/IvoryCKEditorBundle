@@ -23,13 +23,13 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 abstract class AbstractIvoryCKEditorExtensionTest extends \PHPUnit_Framework_TestCase
 {
     /** @var \Symfony\Component\DependencyInjection\ContainerBuilder */
-    protected $container;
+    private $container;
 
     /** @var \Symfony\Component\Templating\Helper\CoreAssetsHelper|\PHPUnit_Framework_MockObject_MockObject */
-    protected $assetsHelperMock;
+    private $assetsHelperMock;
 
     /** @var \Symfony\Component\Routing\RouterInterface|\PHPUnit_Framework_MockObject_MockObject */
-    protected $routerMock;
+    private $routerMock;
 
     /**
      * {@inheritdoc}
@@ -81,8 +81,12 @@ abstract class AbstractIvoryCKEditorExtensionTest extends \PHPUnit_Framework_Tes
         $this->assertInstanceOf('Ivory\CKEditorBundle\Form\Type\CKEditorType', $type);
         $this->assertTrue($type->isEnable());
         $this->assertTrue($type->isAutoload());
+        $this->assertFalse($type->isInline());
+        $this->assertFalse($type->useJquery());
+        $this->assertFalse($type->isInputSync());
         $this->assertSame('bundles/ivoryckeditor/', $type->getBasePath());
         $this->assertSame('bundles/ivoryckeditor/ckeditor.js', $type->getJsPath());
+        $this->assertSame('bundles/ivoryckeditor/adapters/jquery.js', $type->getJqueryPath());
         $this->assertSame($this->container->get('ivory_ck_editor.config_manager'), $type->getConfigManager());
         $this->assertSame($this->container->get('ivory_ck_editor.plugin_manager'), $type->getPluginManager());
         $this->assertSame($this->container->get('ivory_ck_editor.styles_set_manager'), $type->getStylesSetManager());
@@ -124,6 +128,38 @@ abstract class AbstractIvoryCKEditorExtensionTest extends \PHPUnit_Framework_Tes
         $this->container->compile();
 
         $this->assertFalse($this->container->get('ivory_ck_editor.form.type')->isAutoload());
+    }
+
+    public function testInline()
+    {
+        $this->loadConfiguration($this->container, 'inline');
+        $this->container->compile();
+
+        $this->assertTrue($this->container->get('ivory_ck_editor.form.type')->isInline());
+    }
+
+    public function testInputSync()
+    {
+        $this->loadConfiguration($this->container, 'input_sync');
+        $this->container->compile();
+
+        $this->assertTrue($this->container->get('ivory_ck_editor.form.type')->isInputSync());
+    }
+
+    public function testJquery()
+    {
+        $this->loadConfiguration($this->container, 'jquery');
+        $this->container->compile();
+
+        $this->assertTrue($this->container->get('ivory_ck_editor.form.type')->useJquery());
+    }
+
+    public function testJqueryPath()
+    {
+        $this->loadConfiguration($this->container, 'jquery_path');
+        $this->container->compile();
+
+        $this->assertSame('foo/jquery.js', $this->container->get('ivory_ck_editor.form.type')->getJqueryPath());
     }
 
     public function testSingleConfiguration()
@@ -235,9 +271,28 @@ abstract class AbstractIvoryCKEditorExtensionTest extends \PHPUnit_Framework_Tes
 
         $expected = array(
             'default' => array(
-                array('name' => 'Blue Title', 'element' => 'h2', 'styles' => array('text-decoration' => 'underline')),
-                array('name' => 'CSS Style', 'element' => 'span', 'attributes' => array('data-class' => 'my-style')),
-            )
+                array(
+                    'name'    => 'Blue Title',
+                    'element' => 'h2',
+                    'styles'  => array('text-decoration' => 'underline'),
+                ),
+                array(
+                    'name'       => 'CSS Style',
+                    'element'    => 'span',
+                    'attributes' => array('data-class' => 'my-style'),
+                ),
+                array(
+                    'name'       => 'Widget Style',
+                    'type'       => 'widget',
+                    'widget'     => 'my-widget',
+                    'attributes' => array('data-class' => 'my-style'),
+                ),
+                array(
+                    'name'       => 'Multiple Elements Style',
+                    'element'    => array('span', 'p', 'h3'),
+                    'attributes' => array('data-class' => 'my-style'),
+                ),
+            ),
         );
 
         $this->assertSame($expected, $this->container->get('ivory_ck_editor.styles_set_manager')->getStylesSets());

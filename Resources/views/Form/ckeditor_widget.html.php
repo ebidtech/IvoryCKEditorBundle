@@ -6,6 +6,9 @@
             var CKEDITOR_BASEPATH = "<?php echo $view['ivory_ckeditor']->renderBasePath($base_path); ?>";
         </script>
         <script type="text/javascript" src="<?php echo $view['ivory_ckeditor']->renderJsPath($js_path); ?>"></script>
+        <?php if ($jquery) : ?>
+            <script type="text/javascript" src="<?php echo $view['ivory_ckeditor']->renderJsPath($jquery_path); ?>"></script>
+        <?php endif; ?>
     <?php endif; ?>
     <script type="text/javascript">
         <?php echo $view['ivory_ckeditor']->renderDestroy($id); ?>
@@ -22,6 +25,6 @@
             <?php echo $view['ivory_ckeditor']->renderTemplate($templateName, $template); ?>
         <?php endforeach; ?>
 
-        <?php echo $view['ivory_ckeditor']->renderReplace($id, $config); ?>
+        <?php echo $view['ivory_ckeditor']->renderWidget($id, $config, $inline, $input_sync); ?>
     </script>
 <?php endif; ?>
